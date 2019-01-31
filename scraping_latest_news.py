@@ -1,16 +1,16 @@
 import argparse
 import json
 import os
-from Cato_scraper import yield_latest_allnews
-from Cato_scraper import strf_to_datetime
-from Cato_scraper import news_dateformat
+from CSIS_scraper import yield_latest_allnews
+from CSIS_scraper import strf_to_datetime
+from CSIS_scraper import news_dateformat
 
 
 def save(json_obj, directory):
     url = json_obj['url']
-    category, title = [p for p in url.split('/') if p][-2:]
+    title = [p for p in url.split('/') if p][-1:] # this site`s url don`t contain category
     dt = strf_to_datetime(json_obj['time'], news_dateformat)
-    name = '{}-{}-{}_{}_{}'.format(dt.year, dt.month, dt.day, category, title[:50])
+    name = '{}-{}-{}_{}'.format(dt.year, dt.month, dt.day, title[:50])
     filepath = '{}/{}.json'.format(directory, name)
     with open(filepath, 'w', encoding='utf-8') as fp:
         json.dump(json_obj, fp, indent=2, ensure_ascii=False)
