@@ -52,6 +52,7 @@ def yield_latest_allnews(begin_date, max_num=10, sleep=1.0):
         links = [i.find('div', class_= 'teaser__title').find('a')['href'] for i in sub_links]
         links_all += links
         links_all = ['https://www.csis.org' + i for i in links_all]
+        links_all = [url for url in links_all if is_matched(url)]
 
         # scrap
         for url in links_all:
@@ -68,6 +69,12 @@ def yield_latest_allnews(begin_date, max_num=10, sleep=1.0):
 
             # yield
             yield news_json
+
+            # check number of scraped news
+            n_news += 1
+            if n_news >= max_num:
+                break
+            time.sleep(sleep)
 
 def get_allnews_urls(begin_page=1, end_page=3, verbose=True):
     """

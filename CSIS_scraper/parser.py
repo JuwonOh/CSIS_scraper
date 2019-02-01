@@ -24,14 +24,14 @@ def parse_page(url):
         soup = get_soup(url)
         title = soup.find('article', role= 'article').find('h1').text
         time = soup.find('article', role= 'article').find('p').text
-        author = soup.find('div', class_='teaser__title').text
+        #author = soup.find('div', class_='teaser__title').text
         phrases = soup.find_all('p')
         content = '\n'.join([p.text.strip() for p in phrases])
 
         json_object = {
             'title' : title,
             'time' : time,
-            'author' : author,
+            #'author' : author,
             'content' : content,
             'url' : url,
             'scrap_time' : now()
