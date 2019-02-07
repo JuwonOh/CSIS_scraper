@@ -76,7 +76,7 @@ def yield_latest_allnews(begin_date, max_num=10, sleep=1.0):
                 break
             time.sleep(sleep)
 
-def get_allnews_urls(begin_page=1, end_page=3, verbose=True):
+def get_allnews_urls(begin_page=0, end_page=3, verbose=True):
     """
     Arguments
     ---------
