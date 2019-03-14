@@ -1,10 +1,8 @@
 import re
 import time
+from dateutil.parser import parse
 from .parser import parse_page
 from .utils import get_soup
-from .utils import news_dateformat
-from .utils import user_dateformat
-from .utils import strf_to_datetime
 
 def is_matched(url):
     for pattern in patterns:
@@ -12,8 +10,18 @@ def is_matched(url):
             return True
     return False
 
+def is_unmatched(url):
+    for pattern in unpatterns:
+        if pattern.match(url):
+            return False
+    return True
+
 patterns = [
     re.compile('https://www.csis.org/analysis/[\w]+')]
+unpatterns = [
+    re.compile('https://www.csis.org/analysis/issues-insights-vol[\w]+'),
+    re.compile('https://www.csis.org/analysis/pacnet[\w]+')]
+
 url_base = 'https://www.csis.org/analysis/page%3D7?page={}/'
 
 def yield_latest_allnews(begin_date, max_num=10, sleep=1.0):
@@ -33,8 +41,8 @@ def yield_latest_allnews(begin_date, max_num=10, sleep=1.0):
     """
 
     # prepare parameters
-    d_begin = strf_to_datetime(begin_date, user_dateformat)
-    end_page = 72
+    d_begin = parse(begin_date)
+    end_page = 100
     n_news = 0
     outdate = False
 
@@ -53,22 +61,26 @@ def yield_latest_allnews(begin_date, max_num=10, sleep=1.0):
         links_all += links
         links_all = ['https://www.csis.org' + i for i in links_all]
         links_all = [url for url in links_all if is_matched(url)]
+        links_all = [url for url in links_all if is_unmatched(url)]
 
         # scrap
         for url in links_all:
-
             news_json = parse_page(url)
+            try:
+                # check date
+                d_news = news_json['time']
+                if d_begin > d_news:
+                    outdate = True
+                    print('Stop scrapping. {} / {} blog was scrapped'.format(n_news, max_num))
+                    print('The oldest article has been created after {}'.format(begin_date))
+                    break
 
-            # check date
-            d_news = strf_to_datetime(news_json['time'], news_dateformat)
-            if d_begin > d_news:
-                outdate = True
-                print('Stop scrapping. {} / {} news was scrapped'.format(n_news, max_num))
-                print('The oldest news has been created after {}'.format(begin_date))
-                break
-
-            # yield
-            yield news_json
+                # yield
+                yield news_json
+            except Exception as e:
+                print(e)
+                print('Parsing error from {}'.format(url))
+                return None
 
             # check number of scraped news
             n_news += 1
